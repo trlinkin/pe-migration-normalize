@@ -24,8 +24,10 @@ end
 
 abort("Must provide an export file to load") unless export_file = ARGV.first
 
+cputs "Loading classification export YAML..."
 classification = YAML.load(File.read(export_file))
 
+# Process the current classification dump and find similar classifications
 groups = {}
 
 classification.each do |name, details|
@@ -35,14 +37,17 @@ classification.each do |name, details|
   groups[details] << node_name
 end
 
+
+# Print details if option passed
 if options[:details]
   single_nodes = groups.select{ |set, nodes| nodes.size == 1 }
-  cputs "###### Basic Normalization Details ######"
+  cputs "\n###### Basic Normalization Details ######"
   cputs "Total nodes parsed: #{classification.size}"
   cputs "Total unique groups: #{groups.size}"
   cputs "Total classifications unique to one node: #{single_nodes.size}"
 end
 
+# Create normalized strcture to be converted to YAML for use with modified rake task
 normalized = {}
 group_id = 1
 
@@ -57,6 +62,8 @@ groups.each do |details, nodes|
   end
 end
 
+# create file to be used with rake task
+cputs "\nCreating normalized export file: #{options[:output_file]}"
 File.open(options[:output_file], 'w') do |f|
   f << normalized.to_yaml
 end
