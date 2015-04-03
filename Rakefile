@@ -130,8 +130,11 @@ namespace :configuration do
       end
     end
 
+    puts
+    puts '------------------------'
+    puts
     puts "Nodes processed: #{Node.all.size}"
-    puts "Unique groups: #{group_id - 1}"
+    puts "Unique consolidated groups: #{group_id - 1}"
 
     single_nodes = groups.select{ |set, nodes| nodes.size == 1 }
     puts "Configurations unique to single node: #{single_nodes.size}"
