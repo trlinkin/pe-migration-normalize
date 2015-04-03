@@ -79,3 +79,92 @@ namespace :configuration do
   end
 end
 
+namespace :configuration do
+
+  desc 'Export configurations of all nodes to a file.'
+  repeatable_task :normalized_export, [:filename] => :environment do |task|
+
+    unless filename = task.get_parameter(:filename)
+      puts 'Must specify a target filename.'
+      exit 1
+    end
+
+    puts 'Exporting configurations'
+    puts
+    puts 'Node name:'
+    puts '------------------------'
+
+    confs = {}
+    error_nodes = []
+    Node.all.each do |node|
+      puts node.name
+      begin
+        node_configuration = node.configuration
+        node_configuration['classes'] = node_configuration['classes'].delete_if { |key, value| class_to_remove?(key) }
+        confs[node.name] = node_configuration
+      rescue => e
+        error_nodes << node.name
+        puts "  Error: #{e.message}. Skipping this node."
+      end
+    end
+
+    groups = {}
+
+    confs.each do |name, conf|
+      conf.delete('name')
+      groups[conf] = [] unless groups[conf]
+      groups[conf] << name
+    end
+
+    normalized = {}
+    group_id = 1
+
+    groups.each do |conf, nodes|
+      conf['nodes'] = nodes
+
+      if nodes.size == 1
+        normalized[nodes.first] = conf
+      else
+        normalized["Migration Group #{group_id}"] = conf
+        group_id += 1
+      end
+    end
+
+    puts "Nodes processed: #{Node.all.size}"
+    puts "Unique groups: #{group_id - 1}"
+
+    single_nodes = groups.select{ |set, nodes| nodes.size == 1 }
+    puts "Configurations unique to single node: #{single_nodes.size}"
+
+    tempfile  = Tempfile.new(['configurations', 'yml'])
+    begin
+      tempfile.write("# Exported Puppet Enterprise node classification\n")
+      tempfile.write("# Created: #{DateTime.now.strftime '%d/%m/%Y %H:%M:%S'}\n")
+      tempfile.write(normalized.to_yaml)
+    ensure
+      tempfile.close
+    end
+
+    FileUtils.chmod(0400, tempfile.path)
+    FileUtils.mv(tempfile.path, filename)
+
+    puts
+
+    if error_nodes.empty?
+      puts 'Done! Configurations of all nodes were successfully exported.'
+    else
+      puts 'Done! However, configurations of the following nodes were not exported:'
+      puts error_nodes.join(', ')
+    end
+  end
+end
+
+def class_to_remove?(class_name)
+  ['pe_puppetdb', 'pe_postgresql', 'pe_mcollective'].each do |module_name|
+    if class_name.start_with? module_name
+      return true
+    end
+  end
+
+  false
+end
