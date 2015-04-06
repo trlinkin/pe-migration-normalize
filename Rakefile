@@ -82,7 +82,7 @@ end
 namespace :configuration do
 
   desc 'Export configurations of all nodes to a file.'
-  repeatable_task :normalized_export, [:filename] => :environment do |task|
+  repeatable_task :export_normalized, [:filename] => :environment do |task|
 
     unless filename = task.get_parameter(:filename)
       puts 'Must specify a target filename.'
