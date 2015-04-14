@@ -17,14 +17,12 @@ namespace :configuration do
 
     confs = YAML.load(File.read(filename))
 
-    groups = []
-
     DEFAULT_GROUP_ID = '00000000-0000-4000-8000-000000000000'
 
     # Default group
     begin
-      default_group_json = PuppetHttps.get("#{SETTINGS.nc_api_url}/v1/groups/#{DEFAULT_GROUP_ID}", 'application/json', true)
-      groups << JSON.parse(default_group_json)
+      default_group_json = PuppetHttps.get("#{SETTINGS.nc_api_url}/v1/groups", 'application/json', true)
+      groups = JSON.parse(default_group_json)
     rescue Net::HTTPExceptions => e
       report_error(e.response)
       exit
