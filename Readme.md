@@ -91,7 +91,7 @@ command installed with PE.
 
 This Rakefile exposes two new tasks:
   - `configuration:import_normalized[filename]`
-  - `configuration:export_normalized[fileanme]`
+  - `configuration:export_normalized[filename]`
 
 The `configuration:export_normalized` task can be run on either PE 3.3.2
 or 3.7.x, however it is intended to be run on the legacy 3.3.2 node
@@ -102,7 +102,7 @@ the file that will be imported on the new 3.7.x infrastructure.
 __Example Export__
 
 ```bash
-/opt/puppet/bin/rake -f Rakefile configuration:normalized_export[/tmp/norm.yaml]
+/opt/puppet/bin/rake -f Rakefile configuration:export_normalized[/tmp/norm.yaml]
 Exporting configurations
 
 Node name:
